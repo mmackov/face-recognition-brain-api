@@ -1,5 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const bcrypt = require('bcrypt-nodejs');
 
 const app = express();
 app.use(bodyParser.json());
@@ -10,7 +11,8 @@ const database = {
             id: '123',
             name: 'John',
             email: 'john@gmail.com',
-            password: 'cookies',
+            // password: 'apples'
+            password: '$2a$10$EZd3mJF0mq4qiUFgIExgHOSKjm3HfvfQbp4zqBvr0R5S7bjyUMg0m',
             entries: 0,
             joined: new Date()
         },
@@ -18,7 +20,8 @@ const database = {
             id: '124',
             name: 'Sally',
             email: 'sally@gmail.com',
-            password: 'bananas',
+            // password: 'bananas'
+            password: '$2a$10$VDdX90inqOG644.VEVx8VOp/agvrM0p4bg/tfhyk.Lo/UqAka3r8G',
             entries: 0,
             joined: new Date()
         },
@@ -30,25 +33,29 @@ app.get('/', (req, res)=> {
 })
 
 app.post('/signin', (req, res) => {
-    if (req.body.email === database.users[0].email &&
-            req.body.password === database.users[0].password) {
-        res.json('Success');
-    } else {
-        res.status(400).json('Error logging in');
-    } 
+    database.users.forEach(user => {
+        if (req.body.email === user.email &&
+                bcrypt.compareSync(req.body.password, user.password)) {
+            res.json('Success');
+        }
+    });
+    res.status(400).json('Error logging in'); 
 })
 
 app.post('/register', (req, res) => {
     const { email, name, password } = req.body;
-     database.users.push ({
-        id: '125',
-        name: name,
-        email: email,
-        password: password,
-        entries: 0,
-        joined: new Date()
-     })
-     res.json(database.users[database.users.length - 1]);
+    bcrypt.hash(password, null, null, function(err, hash) {
+        console.log(hash);
+        database.users.push ({
+            id: '125',
+            name: name,
+            email: email,
+            password: hash,
+            entries: 0,
+            joined: new Date()
+         })
+    });
+    res.json(database.users[database.users.length - 1]);
 })
 
 app.get('/profile/:id', (req, res) => {
@@ -61,7 +68,7 @@ app.get('/profile/:id', (req, res) => {
     res.status(404).json('User not found');
 })
 
-app.post('/image/:id', (req, res) => {
+app.put('/image/:id', (req, res) => {
     const { id } = req.params;
     database.users.forEach(user => {
         if (user.id === id) {
