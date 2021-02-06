@@ -85,8 +85,8 @@ app.get('/profile/:id', (req, res) => {
     res.status(404).json('User not found');
 })
 
-app.get('/image/:id', (req, res) => {
-    const { id } = req.params;
+app.put('/image', (req, res) => {
+    const { id } = req.body;
     database.users.forEach(user => {
         if (user.id === id) {
             return res.json(++user.entries);
