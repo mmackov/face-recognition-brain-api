@@ -1,14 +1,17 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt-nodejs');
+const cors = require('cors');
 
 const app = express();
 app.use(bodyParser.json());
+app.use(cors());
 
 const database = {
+    maxId: 2,
     users: [
         {
-            id: '123',
+            id: '1',
             name: 'John',
             email: 'john@gmail.com',
             // password: 'apples'
@@ -17,7 +20,7 @@ const database = {
             joined: new Date()
         },
         {
-            id: '124',
+            id: '2',
             name: 'Sally',
             email: 'sally@gmail.com',
             // password: 'bananas'
@@ -36,26 +39,40 @@ app.post('/signin', (req, res) => {
     database.users.forEach(user => {
         if (req.body.email === user.email &&
                 bcrypt.compareSync(req.body.password, user.password)) {
-            res.json('Success');
+            res.json({
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                entries: user.entries,
+                joined: user.joined
+            });
         }
     });
     res.status(400).json('Error logging in'); 
 })
 
 app.post('/register', (req, res) => {
-    const { email, name, password } = req.body;
+    const { name, email, password } = req.body;
     bcrypt.hash(password, null, null, function(err, hash) {
-        console.log(hash);
+        database.maxId++;
+        const maxIdString = database.maxId.toString();
         database.users.push ({
-            id: '125',
+            id: maxIdString,
             name: name,
             email: email,
             password: hash,
             entries: 0,
             joined: new Date()
          })
+        const registeredUser = database.users.find(user => user.id === maxIdString);
+        res.json({
+            id: registeredUser.id,
+            name: registeredUser.name,
+            email: registeredUser.email,
+            entries: registeredUser.entries,
+            joined: registeredUser.joined
+        });
     });
-    res.json(database.users[database.users.length - 1]);
 })
 
 app.get('/profile/:id', (req, res) => {
@@ -68,7 +85,7 @@ app.get('/profile/:id', (req, res) => {
     res.status(404).json('User not found');
 })
 
-app.put('/image/:id', (req, res) => {
+app.get('/image/:id', (req, res) => {
     const { id } = req.params;
     database.users.forEach(user => {
         if (user.id === id) {
