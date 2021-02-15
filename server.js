@@ -12,10 +12,8 @@ const image = require('./controllers/image');
 const db = knex({
     client: 'pg',
     connection: {
-        host : '127.0.0.1',
-        user : 'postgres',
-        password : 'Mryo48dra',
-        database : 'face-recognition-brain'
+        connectionString : process.env.DATABASE_URL,
+        ssl: true
     }
 });
 
@@ -30,12 +28,5 @@ app.get('/profile/:id', profile.handleProfileGet(db));
 app.put('/image', image.handleImage(db));
 app.post('/image-url', image.handleApiCall);
 
-app.listen(3000, () => { console.log('App is running on port 3000') });
-
-/*
-/ --> res = Root endpoint is working
-/signin --> POST = success/fail
-/register --> POST = user
-/profile/:userId --> GET = user
-/image --> PUT = user
-*/
+const port = process.env.PORT || 3000;
+app.listen(port, () => { console.log(`App is running on port ${port}`) });
