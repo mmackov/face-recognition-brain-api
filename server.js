@@ -20,7 +20,7 @@ const db = knex({
 });
 
 const app = express();
-app.use(bodyParser.json());
+app.use(bodyParser.json({limit: '3500kb', extended: true}));
 app.use(cors());
 
 app.get('/', (req, res) => { res.json('Success') });
