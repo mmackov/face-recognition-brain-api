@@ -14,8 +14,9 @@ const handleApiCall = (req, res) => {
             })
             .catch(err => res.status(400).json('Unable to work with API - imageUrl'));
     } else if (req.body.base64) {
+        let base64ImageData = req.body.base64.substring(req.body.base64.indexOf('base64') + 7);
         app.models
-            .predict(Clarifai.FACE_DETECT_MODEL, {base64: req.body.base64})
+            .predict(Clarifai.FACE_DETECT_MODEL, {base64: base64ImageData})
             .then(data => {
                 res.json(data);
             })
